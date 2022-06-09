@@ -1,5 +1,5 @@
 """
-fl_types
+fl_classes
 
 This module contains definitions for FL Studio's built-in types, which can be
 used to assist with type hinting in your project.
