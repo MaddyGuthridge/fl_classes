@@ -12,7 +12,6 @@ https://github.com/MiguelGuthridge/fl_typing
 # With fl_typing enabled so that the typing module works correctly
 from fl_types import EventData
 
-# Enclose the type with quotes so that the type hint doesn't get an error
 def OnMidiIn(event: EventData) -> None:
     ...
 ```
