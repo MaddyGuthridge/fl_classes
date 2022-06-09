@@ -5,7 +5,7 @@ This module contains definitions for FL Studio's built-in types, which can be
 used to assist with type hinting in your project.
 
 NOTE: This module is not included in FL Studio's runtime, and should be
-included by initialising `fl_typing` as a submodule for your project.
+included by initializing `fl_typing` as a submodule for your project.
 https://github.com/MiguelGuthridge/fl_typing
 
 ```py
@@ -18,6 +18,7 @@ def OnMidiIn(event: EventData) -> None:
 """
 from typing import Optional
 from typing_extensions import TypeGuard
+
 
 class EventData:
     """
@@ -165,7 +166,7 @@ class EventData:
 
         * `0x9` Note on (`data1` is note number, `data2` is velocity)
 
-        * `0xA` Note aftertouch (`data1` is note number, `data2` is pressure
+        * `0xA` Note after-touch (`data1` is note number, `data2` is pressure
           value)
 
         * `0xB` Control change (CC, `data1` is control number as per your
@@ -174,7 +175,7 @@ class EventData:
         * `0xC` Program change (used to assign instrument selection, `data1` is
           instrument number)
 
-        * `0xD` Channel aftertouch (`data1` is value, `data2` is unused)
+        * `0xD` Channel after-touch (`data1` is value, `data2` is unused)
 
         * `0xE` Pitch bend (`data1` and `data2` are value, as per the formula
           `data1 + (data2 << 7)`, yielding a range of `0` - `16384`)
@@ -258,7 +259,7 @@ class EventData:
 
     @property
     def pressure(self) -> int:
-        """The pressure value for a channel aftertouch event.
+        """The pressure value for a channel after-touch event.
 
         This is a shadow of the `data1` property. Modifications to this will
         affect all `data1` derived properties.
@@ -337,8 +338,8 @@ class EventData:
         """
         if self.__sysex is None:
             raise ValueError(
-                f"Attempt to access sysex data on standard event. "
-                f"Are you type narrowing your events correctly?"
+                "Attempt to access sysex data on standard event. "
+                "Are you type narrowing your events correctly?"
             )
         return self.__sysex
 
@@ -488,7 +489,7 @@ class EventData:
         It could be considered to be more Pythonic, as well as much simpler to
         catch this exception rather than checking the flags. The following is
         a simple decorator that will catch the exception. This does come with
-        the risk that any unsafe behaviour that FL Studio misses will cause
+        the risk that any unsafe behavior that FL Studio misses will cause
         a system lock-up in FL Studio.
 
         ```py
@@ -509,8 +510,6 @@ class EventData:
         ```
         """
         return self.__pme_flags
-
-e = EventData(0, 1, 2)
 
 
 class StandardEventData(EventData):
