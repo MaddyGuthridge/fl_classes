@@ -30,9 +30,9 @@ class FlMidiMsg:
     by separating standard MIDI events and Sysex MIDI events. These will work
     for FL Studio's types as well.
 
-    * `isEventStandard()`
+    * `isMidiMsgStandard()`
 
-    * `isEventSysex()`
+    * `isMidiMsgSysex()`
 
     Basic type checking is performed when accessing properties of `FlMidiMsg`
     objects, to ensure that incorrect properties aren't accessed (for example
@@ -579,7 +579,7 @@ class StandardMidiMsg(FlMidiMsg):
     your tests.
 
     Instead, you can type narrow to a `StandardFlMidiMsg` object using the
-    `isEventStandard()` function.
+    `isMidiMsgStandard()` function.
     """
     def __init__(self, status: int, data1: int, data2: int) -> None:
         super().__init__(status, data1, data2)
@@ -596,7 +596,7 @@ class SysexMidiMsg(FlMidiMsg):
     your tests.
 
     Instead, you can type narrow to a `SysexFlMidiMsg` object using the
-    `isEventSysex()` function.
+    `isMidiMsgSysex()` function.
     """
     def __init__(self, sysex: list[int]) -> None:
         super().__init__(sysex)
