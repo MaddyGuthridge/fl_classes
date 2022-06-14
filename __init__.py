@@ -1,5 +1,5 @@
 """
-fl_types
+fl_classes
 
 This module contains definitions for FL Studio's built-in types, which can be
 used to assist with type hinting in your project.
@@ -10,37 +10,52 @@ https://github.com/MiguelGuthridge/fl_typing
 
 ```py
 # With fl_typing enabled so that the typing module works correctly
-from fl_types import EventData
+from fl_types import FlMidiMsg
 
 # Enclose the type with quotes so that the type hint doesn't get an error
-def OnMidiIn(event: EventData) -> None:
+def OnMidiIn(event: FlMidiMsg) -> None:
     ...
 ```
 """
-from typing import Optional
+from typing import Optional, overload
 from typing_extensions import TypeGuard
 
-class EventData:
+class FlMidiMsg:
     """
-    A shadow of FL Studio's `EventData` object. Note that although creating
+    A shadow of FL Studio's `FlMidiMsg` object. Note that although creating
     these is possible, it should be avoided during runtime as FL Studio's API
     won't accept it as an argument for any of its functions. It can be used
     within a testing environment, however.
 
     Note that two sub-types are also included, which allow for type narrowing
-    by separating standard MIDI events and Sysex MIDI events.
+    by separating standard MIDI events and Sysex MIDI events. These will work
+    for FL Studio's types as well.
 
     * `isEventStandard()`
 
     * `isEventSysex()`
 
-    Basic type checking is performed when accessing properties of `EventData`
+    Basic type checking is performed when accessing properties of `FlMidiMsg`
     objects, to ensure that incorrect properties aren't accessed (for example
     accessing `data1` for a sysex event). These checks won't be performed
     during runtime for your script, but can help to add more certainty to your
     tests.
     """
 
+    @overload
+    def __init__(
+        self,
+        status_sysex: int,
+        data1: int,
+        data2: int,
+    ) -> None:
+        ...
+    @overload
+    def __init__(
+        self,
+        status_sysex: 'list[int] | bytes',
+    ) -> None:
+        ...
     def __init__(
         self,
         status_sysex: 'int | list[int] | bytes',
@@ -49,7 +64,7 @@ class EventData:
         pmeFlags: int = 0b101110,
     ) -> None:
         """
-        Create an EventData object.
+        Create an `FlMidiMsg` object.
 
         Note that this object will be incompatible with FL Studio's API, and so
         cannot be used as a parameter for any API functions during runtime.
@@ -65,6 +80,19 @@ class EventData:
 
         * `pmeFlags` (`int`, optional): PME flags of event. Defaults to
           `PME_System | PME_System_Safe | PME_PreviewNote | PME_FromMIDI`.
+
+        ### Example Usage
+
+        ```py
+        # Create a note on event on middle C
+        msg = FlMidiMsg(0x90, 0x3C, 0x7F)
+
+        # Create a CC#10 event
+        msg = FlMidiMsg(0xB0, 0x0A, 0x00)
+
+        # Create a sysex event for a universal device enquiry
+        msg = FlMidiMsg([0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7])
+        ```
         """
         if isinstance(status_sysex, int):
             if data1 is None:
@@ -99,6 +127,35 @@ class EventData:
         self.__midi_chan = 0
         self.__midi_chan_ex = 0
         self.__pme_flags = pmeFlags
+
+    def __repr__(self) -> str:
+        if self.__sysex is not None:
+            return f"FlMidiMsg([{', '.join(f'0x{b:02X}' for b in self.sysex)})"
+        else:
+            return (
+                f"FlMidiMsg("
+                f"0x{self.status:02X}, "
+                f"0x{self.data1:02X}, "
+                f"0x{self.data2:02X})"
+            )
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, FlMidiMsg):
+            if (isEventStandard(self) and isEventStandard(other)):
+                return all([
+                    self.status == other.status
+                    and self.data1 == other.data1
+                    and self.data2 == other.data2
+                ])
+            elif (isEventSysex(self) and isEventSysex(other)):
+                return self.sysex == other.sysex
+        elif isinstance(other, int):
+            if isEventStandard(self):
+                return eventToRawData(self) == other
+        elif isinstance(other, bytes):
+            if isEventSysex(self):
+                return eventToRawData(self) == other
+        return False
 
     @staticmethod
     def __standard_check(value: Optional[int], prop: str) -> int:
@@ -511,12 +568,12 @@ class EventData:
         """
         return self.__pme_flags
 
-e = EventData(0, 1, 2)
+e = FlMidiMsg(0, 1, 2)
 
 
-class StandardEventData(EventData):
+class StandardFlMidiMsg(FlMidiMsg):
     """
-    An EventData object which has been type narrowed to a StandardEventData.
+    An FlMidiMsg object which has been type narrowed to a StandardFlMidiMsg.
 
     Note that as FL Studio events are actually of a different type to these
     shadow types, you should never use the `isinstance` function in order to
@@ -524,16 +581,16 @@ class StandardEventData(EventData):
     when your type checks never work inside FL Studio, even if they work in
     your tests.
 
-    Instead, you can type narrow to a `StandardEventData` object using the
+    Instead, you can type narrow to a `StandardFlMidiMsg` object using the
     `isEventStandard()` function.
     """
     def __init__(self, status: int, data1: int, data2: int) -> None:
         super().__init__(status, data1, data2)
 
 
-class SysexEventData(EventData):
+class SysexFlMidiMsg(FlMidiMsg):
     """
-    An EventData object which has been type narrowed to a SysexEventData.
+    An FlMidiMsg object which has been type narrowed to a SysexFlMidiMsg.
 
     Note that as FL Studio events are actually of a different type to these
     shadow types, you should never use the `isinstance` function in order to
@@ -541,34 +598,51 @@ class SysexEventData(EventData):
     when your type checks never work inside FL Studio, even if they work in
     your tests.
 
-    Instead, you can type narrow to a `SysexEventData` object using the
+    Instead, you can type narrow to a `SysexFlMidiMsg` object using the
     `isEventSysex()` function.
     """
     def __init__(self, sysex: list[int]) -> None:
         super().__init__(sysex)
 
 
-def isEventStandard(event: EventData) -> 'TypeGuard[StandardEventData]':
+def isEventStandard(event: FlMidiMsg) -> 'TypeGuard[StandardFlMidiMsg]':
     """
     Returns whether an event is a standard event
 
     ### Args:
-    * `event` (`eventData`): event to check
+    * `event` (`FlMidiMsg`): event to check
 
     ### Returns:
-    * `TypeGuard[SysexEventData]`: type guarded event
+    * `TypeGuard[SysexFlMidiMsg]`: type guarded event
     """
     return not isEventSysex(event)
 
 
-def isEventSysex(event: EventData) -> 'TypeGuard[SysexEventData]':
+def isEventSysex(event: FlMidiMsg) -> 'TypeGuard[SysexFlMidiMsg]':
     """
     Returns whether an event is a sysex event
 
     ### Args:
-    * `event` (`eventData`): event to check
+    * `event` (`FlMidiMsg`): event to check
 
     ### Returns:
-    * `TypeGuard[SysexEventData]`: type guarded event
+    * `TypeGuard[SysexFlMidiMsg]`: type guarded event
     """
     return event.status == 0xF0
+
+
+def eventToRawData(event: FlMidiMsg) -> 'int | bytes':
+    """
+    Convert event to raw data.
+
+    For standard events data is presented as little-endian, meaning that the
+    status byte has the lowest component value in the integer.
+
+    ### Returns:
+    * `int | bytes`: data
+    """
+    if isEventStandard(event):
+        return (event.status) + (event.data1 << 8) + (event.data2 << 16)
+    else:
+        assert isEventSysex(event)
+        return event.sysex
