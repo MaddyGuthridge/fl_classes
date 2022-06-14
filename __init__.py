@@ -5,14 +5,13 @@ This module contains definitions for FL Studio's built-in types, which can be
 used to assist with type hinting in your project.
 
 NOTE: This module is not included in FL Studio's runtime, and should be
-included by initialising `fl_typing` as a submodule for your project.
+included by initializing `fl_typing` as a submodule for your project.
 https://github.com/MiguelGuthridge/fl_typing
 
 ```py
 # With fl_typing enabled so that the typing module works correctly
 from fl_types import FlMidiMsg
 
-# Enclose the type with quotes so that the type hint doesn't get an error
 def OnMidiIn(event: FlMidiMsg) -> None:
     ...
 ```
@@ -141,19 +140,19 @@ class FlMidiMsg:
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, FlMidiMsg):
-            if (isEventStandard(self) and isEventStandard(other)):
+            if (isMidiMsgStandard(self) and isMidiMsgStandard(other)):
                 return all([
                     self.status == other.status
                     and self.data1 == other.data1
                     and self.data2 == other.data2
                 ])
-            elif (isEventSysex(self) and isEventSysex(other)):
+            elif (isMidiMsgSysex(self) and isMidiMsgSysex(other)):
                 return self.sysex == other.sysex
         elif isinstance(other, int):
-            if isEventStandard(self):
+            if isMidiMsgStandard(self):
                 return eventToRawData(self) == other
         elif isinstance(other, bytes):
-            if isEventSysex(self):
+            if isMidiMsgSysex(self):
                 return eventToRawData(self) == other
         return False
 
@@ -223,7 +222,7 @@ class FlMidiMsg:
 
         * `0x9` Note on (`data1` is note number, `data2` is velocity)
 
-        * `0xA` Note aftertouch (`data1` is note number, `data2` is pressure
+        * `0xA` Note after-touch (`data1` is note number, `data2` is pressure
           value)
 
         * `0xB` Control change (CC, `data1` is control number as per your
@@ -232,7 +231,7 @@ class FlMidiMsg:
         * `0xC` Program change (used to assign instrument selection, `data1` is
           instrument number)
 
-        * `0xD` Channel aftertouch (`data1` is value, `data2` is unused)
+        * `0xD` Channel after-touch (`data1` is value, `data2` is unused)
 
         * `0xE` Pitch bend (`data1` and `data2` are value, as per the formula
           `data1 + (data2 << 7)`, yielding a range of `0` - `16384`)
@@ -316,7 +315,7 @@ class FlMidiMsg:
 
     @property
     def pressure(self) -> int:
-        """The pressure value for a channel aftertouch event.
+        """The pressure value for a channel after-touch event.
 
         This is a shadow of the `data1` property. Modifications to this will
         affect all `data1` derived properties.
@@ -395,8 +394,8 @@ class FlMidiMsg:
         """
         if self.__sysex is None:
             raise ValueError(
-                f"Attempt to access sysex data on standard event. "
-                f"Are you type narrowing your events correctly?"
+                "Attempt to access sysex data on standard event. "
+                "Are you type narrowing your events correctly?"
             )
         return self.__sysex
 
@@ -546,7 +545,7 @@ class FlMidiMsg:
         It could be considered to be more Pythonic, as well as much simpler to
         catch this exception rather than checking the flags. The following is
         a simple decorator that will catch the exception. This does come with
-        the risk that any unsafe behaviour that FL Studio misses will cause
+        the risk that any unsafe behavior that FL Studio misses will cause
         a system lock-up in FL Studio.
 
         ```py
@@ -568,10 +567,8 @@ class FlMidiMsg:
         """
         return self.__pme_flags
 
-e = FlMidiMsg(0, 1, 2)
 
-
-class StandardFlMidiMsg(FlMidiMsg):
+class StandardMidiMsg(FlMidiMsg):
     """
     An FlMidiMsg object which has been type narrowed to a StandardFlMidiMsg.
 
@@ -588,7 +585,7 @@ class StandardFlMidiMsg(FlMidiMsg):
         super().__init__(status, data1, data2)
 
 
-class SysexFlMidiMsg(FlMidiMsg):
+class SysexMidiMsg(FlMidiMsg):
     """
     An FlMidiMsg object which has been type narrowed to a SysexFlMidiMsg.
 
@@ -605,7 +602,7 @@ class SysexFlMidiMsg(FlMidiMsg):
         super().__init__(sysex)
 
 
-def isEventStandard(event: FlMidiMsg) -> 'TypeGuard[StandardFlMidiMsg]':
+def isMidiMsgStandard(event: FlMidiMsg) -> 'TypeGuard[StandardMidiMsg]':
     """
     Returns whether an event is a standard event
 
@@ -615,10 +612,10 @@ def isEventStandard(event: FlMidiMsg) -> 'TypeGuard[StandardFlMidiMsg]':
     ### Returns:
     * `TypeGuard[SysexFlMidiMsg]`: type guarded event
     """
-    return not isEventSysex(event)
+    return not isMidiMsgSysex(event)
 
 
-def isEventSysex(event: FlMidiMsg) -> 'TypeGuard[SysexFlMidiMsg]':
+def isMidiMsgSysex(event: FlMidiMsg) -> 'TypeGuard[SysexMidiMsg]':
     """
     Returns whether an event is a sysex event
 
@@ -641,8 +638,8 @@ def eventToRawData(event: FlMidiMsg) -> 'int | bytes':
     ### Returns:
     * `int | bytes`: data
     """
-    if isEventStandard(event):
+    if isMidiMsgStandard(event):
         return (event.status) + (event.data1 << 8) + (event.data2 << 16)
     else:
-        assert isEventSysex(event)
+        assert isMidiMsgSysex(event)
         return event.sysex
