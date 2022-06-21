@@ -584,6 +584,7 @@ class StandardMidiMsg(FlMidiMsg):
     Instead, you can type narrow to a `StandardFlMidiMsg` object using the
     `isMidiMsgStandard()` function.
     """
+
     def __init__(self, status: int, data1: int, data2: int) -> None:
         super().__init__(status, data1, data2)
 
@@ -601,6 +602,7 @@ class SysexMidiMsg(FlMidiMsg):
     Instead, you can type narrow to a `SysexFlMidiMsg` object using the
     `isMidiMsgSysex()` function.
     """
+
     def __init__(self, sysex: list[int]) -> None:
         super().__init__(sysex)
 
