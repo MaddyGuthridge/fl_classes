@@ -10,7 +10,7 @@ https://github.com/MiguelGuthridge/fl_typing
 
 ```py
 # With fl_typing enabled so that the typing module works correctly
-from fl_types import FlMidiMsg
+from fl_classes import FlMidiMsg
 
 def OnMidiIn(event: FlMidiMsg) -> None:
     ...
