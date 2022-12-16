@@ -493,6 +493,9 @@ class FlMidiMsg:
         * Song marker jump
         * Performance mode
         * Generator muting
+        
+        Note that here, midiChan starts at 0, whereas in FL Studio the channels
+        start at 1 (so they are off by one).
         """
         return self.__midi_chan
 
