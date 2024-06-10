@@ -6,7 +6,7 @@ used to assist with type hinting in your project.
 
 NOTE: This module is not included in FL Studio's runtime, and should be
 included by initializing `fl_typing` as a submodule for your project.
-https://github.com/MiguelGuthridge/fl_typing
+https://github.com/MaddyGuthridge/fl_typing
 
 ```py
 # With fl_typing enabled so that the typing module works correctly
