@@ -481,13 +481,21 @@ class FlMidiMsg:
 
     @property
     def midiChan(self) -> int:
-        """MIDI chan
-
-        ### HELP WANTED:
-        * What is this?
-
-        * No, it's not a channel. It always seems to be zero, regardless of the
-          channel of the event.
+        """The MIDI channel
+        
+        Some MIDI controllers allow you to set the channel for certain actions.
+        For example, in the Novation Components software, you can set the 
+        channel for the Novation Launchkey Mini MK3's drum pads.
+        
+        In FL Studio, these channels are used in the MIDI settings for features
+        like:
+        * Omni preview
+        * Song marker jump
+        * Performance mode
+        * Generator muting
+        
+        Note that here, midiChan starts at 0, whereas in FL Studio the channels
+        start at 1 (so they are off by one).
         """
         return self.__midi_chan
 
