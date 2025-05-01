@@ -17,6 +17,7 @@ def OnMidiIn(event: FlMidiMsg) -> None:
 ```
 """
 from typing import Optional, overload
+
 from typing_extensions import TypeGuard
 
 
